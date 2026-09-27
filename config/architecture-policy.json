@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "name": "clean-architecture-contract",
+  "principle": "Clean Architecture is enforced by dependency direction and responsibility boundaries, not by directories alone.",
+  "scaffold_policy": {
+    "empty_directories": "forbidden",
+    "small_project": {
+      "style": "layer-first",
+      "heuristics": {
+        "max_source_files": 120,
+        "max_candidate_contexts": 3
+      },
+      "tree": {
+        "src/domain": ["entities", "value-objects", "aggregates", "services", "events", "exceptions", "policies"],
+        "src/application": ["use-cases", "ports/inbound", "ports/outbound", "dto", "mappers", "validators"],
+        "src/infrastructure": ["persistence/repositories", "persistence/entities", "persistence/migrations", "messaging", "cache", "http", "security", "observability", "config"],
+        "src/presentation": ["controllers", "requests", "responses", "presenters", "exception-handlers"],
+        "src/bootstrap": ["dependency-injection", "config", "main.*"],
+        "tests": ["unit/domain", "unit/application", "integration", "architecture", "contract", "e2e"],
+        "docs": ["architecture", "adr", "diagrams"],
+        "root": ["scripts", "config"]
+      }
+    },
+    "medium_large_project": {
+      "style": "feature-first",
+      "tree": {
+        "src/modules/<bounded-context>": ["domain", "application", "infrastructure", "presentation"],
+        "src/shared": ["domain", "application", "infrastructure"],
+        "src/bootstrap": ["dependency-injection", "config", "main.*"]
+      },
+      "shared_rule": "src/shared is allowed only for abstractions that are genuinely reused by multiple bounded contexts."
+    }
+  },
+  "dependency_rules": [
+    {
+      "id": "presentation_depends_on_application",
+      "from": "presentation",
+      "allowed_dependencies": ["application", "domain"],
+      "message": "Presentation may map protocols and call application use cases, but must not contain business rules or depend directly on infrastructure."
+    },
+    {
+      "id": "infrastructure_depends_on_application",
+      "from": "infrastructure",
+      "allowed_dependencies": ["application", "domain"],
+      "message": "Infrastructure implements repositories/adapters and may depend on application ports and domain types."
+    },
+    {
+      "id": "application_depends_on_domain",
+      "from": "application",
+      "allowed_dependencies": ["domain"],
+      "message": "Application owns use cases, orchestration, DTOs and ports; it must not depend on infrastructure or frameworks."
+    },
+    {
+      "id": "domain_depends_on_nothing_external",
+      "from": "domain",
+      "allowed_dependencies": [],
+      "message": "Domain must be framework and technology agnostic."
+    }
+  ],
+  "layers": {
+    "domain": {
+      "allows": ["entities", "value objects", "aggregates", "domain services", "events", "exceptions", "policies"],
+      "forbids": ["framework", "http", "database", "orm", "messaging implementation", "cache implementation", "presentation", "infrastructure"]
+    },
+    "application": {
+      "allows": ["use cases", "ports", "orchestration", "necessary DTOs", "mappers", "validators"],
+      "forbids": ["controllers", "sql", "kafka implementation", "redis implementation", "framework-specific code", "infrastructure"]
+    },
+    "infrastructure": {
+      "allows": ["repository implementations", "adapter implementations", "orm", "external APIs", "messaging", "cache", "observability", "framework integration"],
+      "forbids": ["business rules"]
+    },
+    "presentation": {
+      "allows": ["controllers", "protocol mapping", "requests", "responses", "presenters", "exception handlers"],
+      "forbids": ["business rules", "database access", "repository implementation"]
+    },
+    "bootstrap": {
+      "allows": ["dependency injection", "startup", "configuration wiring"],
+      "forbids": ["business rules"]
+    }
+  },
+  "port_adapter_contract": {
+    "ports_defined_in": "application",
+    "adapters_implemented_in": "infrastructure",
+    "example": {
+      "port": "application/ports/outbound/UserRepository",
+      "adapter": "infrastructure/persistence/repositories/PostgresUserRepository"
+    }
+  },
+  "migration_gates": [
+    "discover bounded contexts before moving code",
+    "choose layer-first for small projects and feature-first for medium/large projects using configurable heuristics",
+    "preserve behavior",
+    "generate before/after map",
+    "run tests/build/architecture gates for every batch",
+    "never reorganize blindly"
+  ]
+}

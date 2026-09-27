@@ -1,0 +1,38 @@
+{
+  "batch": {
+    "max_files": 5,
+    "max_batches": 5,
+    "require_tests_before_structural_move": true,
+    "prefer_characterization_tests": true
+  },
+  "style_rules": {
+    "early_return": "prefer_when_clearer",
+    "max_if_per_method": "heuristic_not_dogma",
+    "nested_loops": "avoid_when_clearer_alternative_exists",
+    "ddd": "pragmatic_from_existing_domain_language",
+    "bdd": "use_for_business_scenarios_when_readable"
+  },
+  "architecture_policy": {
+    "file": "config/architecture-policy.json",
+    "clean_architecture_means": "dependency_direction_and_responsibility_boundaries_not_directories",
+    "empty_directories": "forbidden",
+    "small_project_scaffold": "layer-first",
+    "medium_large_project_scaffold": "feature-first",
+    "discover_bounded_contexts_before_structural_moves": true,
+    "application_ports_are_core_owned": true,
+    "infrastructure_implements_adapters": true,
+    "require_before_after_map_per_structural_batch": true,
+    "require_architecture_validation_per_batch": true
+  },
+  "parallelism": {
+    "enabled": true,
+    "mode": "worktrees_only",
+    "integration": "serial_with_gates"
+  },
+  "safety": {
+    "never_mass_rewrite": true,
+    "require_rollback_note_per_batch": true,
+    "preserve_public_api_by_default": true,
+    "do_not_log_secrets": true
+  }
+}
